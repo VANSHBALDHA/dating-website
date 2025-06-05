@@ -542,29 +542,36 @@ export default function MobileSweaping() {
   z-index: 2;
   margin-top: 60px;
     }
+
     .avatar-wrapper {
       width: 100%;
       height: 450px;
       position: relative;
+      pointer-events: none;
     }
     .avatar-img {
       width: 100%;
       height: 100%;
       object-fit: cover;
     }
+      
     .profile-info-icon {
       position: absolute;
-      top: 30px;
+      top: 100px;
       right: -10px;
       transform: translate(-50%, -50%);
       width: 40px;
-      z-index: 2;
+      z-index: 10;
       cursor: pointer;
+      pointer-events: auto;
     }
+
     .profile-info-icon img{
       width: 100%;
       height: 100%;
-      object-fit: cover;}
+      object-fit: cover;
+      }
+
     .flag-icon {
       position: absolute;
       bottom: 8px;
@@ -572,6 +579,7 @@ export default function MobileSweaping() {
       background-color: rgba(0, 0, 0, 0.6);
       padding: 5px;
       border-radius: 5px;
+      pointer-events: auto;
       cursor: pointer;
     }
     .card-content {
@@ -639,73 +647,15 @@ export default function MobileSweaping() {
 
         {/* Card Rendering */}
         {idParam !== null ? (
-          <div className="profile-card">
-            <div className="avatar-wrapper">
-              <img
-                className="avatar-img"
-                src={selectedUserProfile?.Avatar || ""}
-                alt={selectedUserProfile?.Username || "Unknown"}
-              />
-              <div className="profile-info-icon" onClick={() => {
-                setShowDetail(true);
-                setSelectedUserId(userProfiles[currentIndex]?.Id);
-              }}>
-                <img src="/ProfileInfo.png" alt="Profile Info" />
-              </div>
-              <div className="flag-icon" onClick={e => {
-                e.stopPropagation();
-                handleReportModalToggle();
-              }}>
-                <Flag sx={{ color: "#9c27b0" }} />
-              </div>
-            </div>
-            <div className="card-content">
-              <h3>
-                {selectedUserProfile?.Username || "Unknown"},{" "}
-                {selectedUserProfile?.DateOfBirth &&
-                  new Date().getFullYear() - new Date(selectedUserProfile.DateOfBirth).getFullYear()}
-                {selectedUserProfile?.Gender === "Male" ? "M" : selectedUserProfile?.Gender === "Female" ? "F" : ""}
-                {selectedUserProfile?.PartnerDateOfBirth && (
-                  <>
-                    {" | "}
-                    {new Date().getFullYear() -
-                      new Date(selectedUserProfile.PartnerDateOfBirth).getFullYear()}
-                    {selectedUserProfile?.PartnerGender === "Male"
-                      ? "M"
-                      : selectedUserProfile?.PartnerGender === "Female"
-                        ? "F"
-                        : ""}
-                  </>
-                )}
-              </h3>
-              <span className="location">
-                {selectedUserProfile?.Location?.replace(", USA", "")}
-              </span>
-              <AboutSection aboutText={selectedUserProfile?.About} />
-            </div>
-          </div>
-        ) : (
-          userProfiles[currentIndex] && (
-            <TinderCard
-              key={userProfiles[currentIndex].Id}
-              onSwipe={(dir) => onSwipe(dir, userProfiles[currentIndex])}
-              preventSwipe={["up"]}
-              className="profile-card"
-              flickOnSwipe
-            >
+          <div style={{ position: "relative" }}>
+            <div className="profile-card">
               <div className="avatar-wrapper">
                 <img
                   className="avatar-img"
-                  src={userProfiles[currentIndex]?.Avatar || ""}
-                  alt={userProfiles[currentIndex]?.Username || "Unknown"}
+                  src={selectedUserProfile?.Avatar || ""}
+                  alt={selectedUserProfile?.Username || "Unknown"}
                 />
-                <div className="profile-info-icon" onClick={e => {
-                  e.stopPropagation();
-                  setShowDetail(true);
-                  setSelectedUserId(userProfiles[currentIndex]?.Id);
-                }}>
-                  <img src="/ProfileInfo.png" alt="Profile Info" />
-                </div>
+
                 <div className="flag-icon" onClick={e => {
                   e.stopPropagation();
                   handleReportModalToggle();
@@ -715,30 +665,95 @@ export default function MobileSweaping() {
               </div>
               <div className="card-content">
                 <h3>
-                  {userProfiles[currentIndex]?.Username || "Unknown"},{" "}
-                  {userProfiles[currentIndex]?.DateOfBirth &&
-                    new Date().getFullYear() - new Date(userProfiles[currentIndex].DateOfBirth).getFullYear()}
-                  {userProfiles[currentIndex]?.Gender === "Male" ? "M" : userProfiles[currentIndex]?.Gender === "Female" ? "F" : ""}
-                  {userProfiles[currentIndex]?.PartnerDateOfBirth && (
+                  {selectedUserProfile?.Username || "Unknown"},{" "}
+                  {selectedUserProfile?.DateOfBirth &&
+                    new Date().getFullYear() - new Date(selectedUserProfile.DateOfBirth).getFullYear()}
+                  {selectedUserProfile?.Gender === "Male" ? "M" : selectedUserProfile?.Gender === "Female" ? "F" : ""}
+                  {selectedUserProfile?.PartnerDateOfBirth && (
                     <>
                       {" | "}
-                      {new Date().getFullYear() - new Date(userProfiles[currentIndex].PartnerDateOfBirth).getFullYear()}{" "}
-                      {userProfiles[currentIndex]?.PartnerGender === "Male"
+                      {new Date().getFullYear() -
+                        new Date(selectedUserProfile.PartnerDateOfBirth).getFullYear()}
+                      {selectedUserProfile?.PartnerGender === "Male"
                         ? "M"
-                        : userProfiles[currentIndex]?.PartnerGender === "Female"
+                        : selectedUserProfile?.PartnerGender === "Female"
                           ? "F"
                           : ""}
                     </>
                   )}
                 </h3>
                 <span className="location">
-                  {userProfiles[currentIndex]?.Location?.replace(", USA", "")}
+                  {selectedUserProfile?.Location?.replace(", USA", "")}
                 </span>
+                <AboutSection aboutText={selectedUserProfile?.About} />
               </div>
-              <div>
-                <AboutSection aboutText={userProfiles[currentIndex]?.About} />
+            </div>
+            <div className="profile-info-icon" onClick={() => {
+              setShowDetail(true);
+              setSelectedUserId(userProfiles[currentIndex]?.Id);
+            }}>
+              <img src="/ProfileInfo.png" alt="Profile Info" />
+            </div>
+          </div>
+        ) : (
+          userProfiles[currentIndex] && (
+            <>
+              <div style={{ position: "relative" }}>
+                <TinderCard
+                  key={userProfiles[currentIndex].Id}
+                  onSwipe={(dir) => onSwipe(dir, userProfiles[currentIndex])}
+                  preventSwipe={["up"]}
+                  className="profile-card"
+                  flickOnSwipe
+                >
+                  <div className="avatar-wrapper">
+                    <img
+                      className="avatar-img"
+                      src={userProfiles[currentIndex]?.Avatar || ""}
+                      alt={userProfiles[currentIndex]?.Username || "Unknown"}
+                    />
+
+                    <div className="flag-icon" onClick={e => {
+                      e.stopPropagation();
+                      handleReportModalToggle();
+                    }}>
+                      <Flag sx={{ color: "#9c27b0" }} />
+                    </div>
+                  </div>
+                  <div className="card-content">
+                    <h3>
+                      {userProfiles[currentIndex]?.Username || "Unknown"},{" "}
+                      {userProfiles[currentIndex]?.DateOfBirth &&
+                        new Date().getFullYear() - new Date(userProfiles[currentIndex].DateOfBirth).getFullYear()}
+                      {userProfiles[currentIndex]?.Gender === "Male" ? "M" : userProfiles[currentIndex]?.Gender === "Female" ? "F" : ""}
+                      {userProfiles[currentIndex]?.PartnerDateOfBirth && (
+                        <>
+                          {" | "}
+                          {new Date().getFullYear() - new Date(userProfiles[currentIndex].PartnerDateOfBirth).getFullYear()}{" "}
+                          {userProfiles[currentIndex]?.PartnerGender === "Male"
+                            ? "M"
+                            : userProfiles[currentIndex]?.PartnerGender === "Female"
+                              ? "F"
+                              : ""}
+                        </>
+                      )}
+                    </h3>
+                    <span className="location">
+                      {userProfiles[currentIndex]?.Location?.replace(", USA", "")}
+                    </span>
+                  </div>
+                  <div>
+                    <AboutSection aboutText={userProfiles[currentIndex]?.About} />
+                  </div>
+                </TinderCard>
+                <div className="profile-info-icon" onClick={() => {
+                  setShowDetail(true);
+                  setSelectedUserId(userProfiles[currentIndex]?.Id);
+                }}>
+                  <img src="/ProfileInfo.png" alt="Profile Info" />
+                </div>
               </div>
-            </TinderCard>
+            </>
           )
         )}
       </div>
