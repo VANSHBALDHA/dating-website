@@ -301,7 +301,7 @@ export default function Home() {
 
   const fetchCurrentLoginProfileId = async (currentLoginProfileId: string) => {
     if (currentLoginProfileId) {
-      setLoading(true);
+      // setLoading(true);
       try {
         const response = await fetch(
           `/api/user/sweeping/user?id=${currentLoginProfileId}`
@@ -332,7 +332,7 @@ export default function Home() {
       } catch (error: any) {
         console.error("Error fetching data:", error.message);
       } finally {
-        setLoading(false);
+        // setLoading(false);
       }
     }
   };
@@ -355,7 +355,7 @@ export default function Home() {
     } catch (error) {
       console.error("Error fetching user profiles:", error);
     } finally {
-      setLoading(false);
+      // setLoading(false);
     }
   };
 
@@ -493,28 +493,7 @@ export default function Home() {
     }
   };
 
-  const LoaderOverlay = () =>
-    loading ? (
-      <Box
-        position="fixed"
-        top={0}
-        left={0}
-        width="100vw"
-        height="100vh"
-        display="flex"
-        alignItems="center"
-        justifyContent="center"
-        bgcolor="rgba(0,0,0,0.7)"
-        zIndex={9999}
-      >
-        <Box
-          component="img"
-          src="/loading.png"
-          alt="Loading"
-          sx={{ width: 60, height: 60 }}
-        />
-      </Box>
-    ) : null;
+
 
   const handleUpdateCategoryRelation = async (category: any) => {
     try {
@@ -741,19 +720,19 @@ export default function Home() {
     }
   };
 
-  if (loading) {
-    return (
-      <Box
-        display="flex"
-        justifyContent="center" // Centers horizontally
-        alignItems="center" // Centers vertically
-        height="100vh" // Full viewport height
-        bgcolor="#121212" // Background color
-      >
-        <LoadingScreen logoSrc="/loading.png"></LoadingScreen>
-      </Box>
-    );
-  }
+  // if (loading) {
+  //   return (
+  //     <Box
+  //       display="flex"
+  //       justifyContent="center" // Centers horizontally
+  //       alignItems="center" // Centers vertically
+  //       height="100vh" // Full viewport height
+  //       bgcolor="#121212" // Background color
+  //     >
+  //       <LoadingScreen logoSrc="/loading.png"></LoadingScreen>
+  //     </Box>
+  //   );
+  // }
 
   if (userProfiles.length === 0) {
     return (
@@ -777,7 +756,6 @@ export default function Home() {
 
   return (
     <>
-      <LoaderOverlay />
       {isMobile ? (
         <MobileSweaping />
       ) : (
@@ -829,11 +807,6 @@ export default function Home() {
                     onSwipe={(dir) => handleSwipe(dir)}
                     preventSwipe={["up"]}
                     flickOnSwipe
-                    style={{
-                      width: "400px",
-                      height: "550px",
-                      position: "absolute",
-                    }}
                   >
                     <Card
                       sx={{
