@@ -369,6 +369,10 @@ export default function MobileSweaping() {
     ]
   );
 
+  const [startX, setStartX] = useState<number | null>(null);
+  const [startY, setStartY] = useState<number | null>(null);
+
+
   setTimeout(() => {
     setSwipeDirection(null);
   }, 500);
@@ -683,6 +687,7 @@ export default function MobileSweaping() {
       </div>
 
       <div className="swipe-container">
+
         {swipeDirection && (
           <Box>
             {swipeDirection === "right" && (
@@ -702,7 +707,6 @@ export default function MobileSweaping() {
             )}
           </Box>
         )}
-
 
         {/* Card Rendering */}
         {idParam !== null ? (
@@ -764,8 +768,33 @@ export default function MobileSweaping() {
                   preventSwipe={["up"]}
                   className="profile-card"
                   flickOnSwipe
+                  onCardLeftScreen={() => setSwipeDirection(null)}
                 >
-                  <div className="avatar-wrapper">
+                  <div className="avatar-wrapper"
+                    onTouchMove={(e) => {
+                      const touch = e.touches[0];
+                      if (!touch || !startX) return;
+
+                      const diffX = touch.clientX - startX;
+                      const diffY = touch.clientY - startY;
+
+                      if (Math.abs(diffX) > Math.abs(diffY)) {
+                        if (diffX > 30) setSwipeDirection("right");
+                        else if (diffX < -30) setSwipeDirection("left");
+                      } else {
+                        if (diffY > 30) setSwipeDirection("down");
+                      }
+                    }}
+                    onTouchStart={(e) => {
+                      const touch = e.touches[0];
+                      setStartX(touch.clientX);
+                      setStartY(touch.clientY);
+                    }}
+                    onTouchEnd={() => {
+                      setStartX(null);
+                      setStartY(null);
+                      // Let `onSwipe` handle final state; don't clear it here
+                    }}>
                     <img
                       className="avatar-img"
                       src={userProfiles[currentIndex]?.Avatar || ""}
