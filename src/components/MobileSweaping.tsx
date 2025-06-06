@@ -314,9 +314,12 @@ export default function MobileSweaping() {
   const isUserPremium = () => membership === 1;
   const hasReachedSwipeLimit = () => swipeCount >= DAILY_LIMIT;
 
+  const [swipeDirection, setSwipeDirection] = useState<string | null>(null);
+
   // Handler for swipe
   const onSwipe = useCallback(
     async (direction: string, profile: any) => {
+      setSwipeDirection(direction);
       if (isProcessingSwipe) return;
       if (!profile) return;
       if (idParam != null) {
@@ -365,6 +368,10 @@ export default function MobileSweaping() {
       router,
     ]
   );
+
+  setTimeout(() => {
+    setSwipeDirection(null);
+  }, 500);
 
   // Handler for swipe buttons
   const handleSwipeAction = useCallback(
@@ -492,6 +499,50 @@ export default function MobileSweaping() {
       position: relative;
       overflow: visible;
     }
+
+    .like-img{
+    position: absolute;
+    z-index: 9999;
+    top: 47%;
+    right: 70px;
+    transform: translateY(-50%);
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    padding : 0 7px 5px 8px;
+    }
+
+    .like-img img, .delete-img img, .maybe-img img{
+    width: 120px;
+    height: 120px;
+    }
+
+    
+    .delete-img{
+    position: absolute;
+    z-index: 9999;
+    top: 47%;
+    right: 70px;
+    transform: translateY(-50%);
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    padding : 0 7px 5px 8px;
+    }
+
+    
+    .maybe-img{
+    position: absolute;
+    z-index: 9999;
+    top: 60%;
+    right: 56%;
+    transform: translateY(-50%);
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    padding : 0 7px 5px 8px;
+    }
+
     .swipe-button {
       position: absolute;
       width: 80px;
@@ -632,18 +683,26 @@ export default function MobileSweaping() {
       </div>
 
       <div className="swipe-container">
-        {/* Like Button */}
-        <div className="swipe-button like" onClick={() => handleSwipeAction("like")}>
-          <img src="/like.png" alt="Like" />
-        </div>
-        {/* Delete Button */}
-        <div className="swipe-button delete" onClick={() => handleSwipeAction("delete")}>
-          <img src="/delete.png" alt="Delete" />
-        </div>
-        {/* Maybe Button */}
-        <div className="swipe-button maybe" onClick={() => handleSwipeAction("maybe")}>
-          <img src="/maybe.png" alt="Maybe" />
-        </div>
+        {swipeDirection && (
+          <Box>
+            {swipeDirection === "right" && (
+              <div className="like-img">
+                <img src="/like.png" alt="Like" />
+              </div>
+            )}
+            {swipeDirection === "left" && (
+              <div className="delete-img" >
+                <img src="/delete.png" alt="Delete" />
+              </div>
+            )}
+            {swipeDirection === "down" && (
+              <div className="maybe-img">
+                <img src="/maybe.png" alt="Maybe" />
+              </div>
+            )}
+          </Box>
+        )}
+
 
         {/* Card Rendering */}
         {idParam !== null ? (
