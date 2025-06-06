@@ -22,7 +22,7 @@ import "react-toastify/dist/ReactToastify.css";
 import { ToastContainer } from "react-toastify";
 import Footer from "./Footer";
 import { jwtDecode } from "jwt-decode";
-import TinderCard from "react-tinder-card";
+import { useSwipeable } from "react-swipeable";
 
 export interface DetailViewHandle {
   open: (id: string) => void;
@@ -53,7 +53,8 @@ export default function MobileSweaping() {
     reportUser: false,
     blockUser: false,
   });
-  const swipeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [swipeDirection, setSwipeDirection] = useState<string | null>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
 
   const router = useRouter();
 
@@ -314,21 +315,21 @@ export default function MobileSweaping() {
   const isUserPremium = () => membership === 1;
   const hasReachedSwipeLimit = () => swipeCount >= DAILY_LIMIT;
 
-  const [swipeDirection, setSwipeDirection] = useState<string | null>(null);
 
-  // Handler for swipe
-  const onSwipe = useCallback(
-    async (direction: string, profile: any) => {
-      setSwipeDirection(direction);
+  const handleSwipe = useCallback(
+    async (direction: string) => {
+      const profile = userProfiles[currentIndex];
       if (isProcessingSwipe) return;
       if (!profile) return;
       if (idParam != null) {
         router.push("/members");
         return;
       }
+
+      setSwipeDirection(direction);
       setIsProcessingSwipe(true);
       setLoading(true);
-      const nextIndex = currentIndex + 1;
+
       try {
         if (direction === "left") {
           await handleUpdateCategoryRelation("Denied", profile);
@@ -339,6 +340,7 @@ export default function MobileSweaping() {
           await handleUpdateCategoryRelation("Maybe", profile);
         }
 
+        const nextIndex = currentIndex + 1;
         setCurrentIndex(nextIndex);
 
         if (nextIndex >= userProfiles.length) {
@@ -352,44 +354,33 @@ export default function MobileSweaping() {
       } catch (error) {
         console.error("Error processing swipe:", error);
       } finally {
-        setIsProcessingSwipe(false);
-        setLoading(false);
+        setTimeout(() => {
+          setSwipeDirection(null);
+          setIsProcessingSwipe(false);
+          setLoading(false);
+        }, 300);
       }
     },
     [
-      isProcessingSwipe,
       currentIndex,
-      userProfiles.length,
-      isUserPremium,
-      hasReachedSwipeLimit,
-      handleUpdateCategoryRelation,
-      handleUpdateLikeMatch,
+      userProfiles,
+      isProcessingSwipe,
       idParam,
       router,
+      handleUpdateCategoryRelation,
+      handleUpdateLikeMatch,
+      isUserPremium,
+      hasReachedSwipeLimit,
     ]
   );
 
-  const [startX, setStartX] = useState<number | null>(null);
-  const [startY, setStartY] = useState<number | null>(null);
-
-
-  setTimeout(() => {
-    setSwipeDirection(null);
-  }, 500);
-
-  // Handler for swipe buttons
-  const handleSwipeAction = useCallback(
-    (action: string) => {
-      const targetProfile = userProfiles[currentIndex];
-      if (!targetProfile) return;
-      let direction: "left" | "right" | "down";
-      if (action === "like") direction = "right";
-      else if (action === "delete") direction = "left";
-      else direction = "down";
-      onSwipe(direction, targetProfile);
-    },
-    [currentIndex, userProfiles, onSwipe]
-  );
+  const swipeHandlers = useSwipeable({
+    onSwipedLeft: () => handleSwipe("left"),
+    onSwipedRight: () => handleSwipe("right"),
+    onSwipedDown: () => handleSwipe("down"),
+    preventDefaultTouchmoveEvent: true,
+    trackMouse: true,
+  });
 
   const handleReportModalToggle = useCallback(() => {
     setIsReportModalOpen((prev) => !prev);
@@ -413,14 +404,6 @@ export default function MobileSweaping() {
   const handleChatAction = () => {
     router.push(`/messaging/${id}`);
   };
-
-  useEffect(() => {
-    return () => {
-      if (swipeTimeoutRef.current) {
-        clearTimeout(swipeTimeoutRef.current);
-      }
-    };
-  }, []);
 
   const LoaderOverlay = () =>
     loading ? (
@@ -665,7 +648,7 @@ export default function MobileSweaping() {
       <Header />
       <ToastContainer position="top-right" autoClose={3000} />
 
-      <LoaderOverlay />
+      {/* <LoaderOverlay /> */}
 
       <div style={{ display: 'none' }}>
         {preloadProfiles.map((profile, index) =>
@@ -687,7 +670,6 @@ export default function MobileSweaping() {
       </div>
 
       <div className="swipe-container">
-
         {swipeDirection && (
           <Box>
             {swipeDirection === "right" && (
@@ -707,6 +689,7 @@ export default function MobileSweaping() {
             )}
           </Box>
         )}
+
 
         {/* Card Rendering */}
         {idParam !== null ? (
@@ -761,40 +744,15 @@ export default function MobileSweaping() {
         ) : (
           userProfiles[currentIndex] && (
             <>
-              <div style={{ position: "relative" }}>
-                <TinderCard
-                  key={userProfiles[currentIndex].Id}
-                  onSwipe={(dir) => onSwipe(dir, userProfiles[currentIndex])}
-                  preventSwipe={["up"]}
-                  className="profile-card"
-                  flickOnSwipe
-                  onCardLeftScreen={() => setSwipeDirection(null)}
+              <div style={{ position: "relative" }} ref={cardRef}>
+                <div
+                  {...swipeHandlers}
+                  className={`profile-card ${swipeDirection === "right" ? "swipe-right" :
+                    swipeDirection === "left" ? "swipe-left" :
+                      swipeDirection === "down" ? "swipe-down" : ""
+                    }`}
                 >
-                  <div className="avatar-wrapper"
-                    onTouchMove={(e) => {
-                      const touch = e.touches[0];
-                      if (!touch || !startX) return;
-
-                      const diffX = touch.clientX - startX;
-                      const diffY = touch.clientY - startY;
-
-                      if (Math.abs(diffX) > Math.abs(diffY)) {
-                        if (diffX > 30) setSwipeDirection("right");
-                        else if (diffX < -30) setSwipeDirection("left");
-                      } else {
-                        if (diffY > 30) setSwipeDirection("down");
-                      }
-                    }}
-                    onTouchStart={(e) => {
-                      const touch = e.touches[0];
-                      setStartX(touch.clientX);
-                      setStartY(touch.clientY);
-                    }}
-                    onTouchEnd={() => {
-                      setStartX(null);
-                      setStartY(null);
-                      // Let `onSwipe` handle final state; don't clear it here
-                    }}>
+                  <div className="avatar-wrapper">
                     <img
                       className="avatar-img"
                       src={userProfiles[currentIndex]?.Avatar || ""}
@@ -833,7 +791,7 @@ export default function MobileSweaping() {
                   <div>
                     <AboutSection aboutText={userProfiles[currentIndex]?.About} />
                   </div>
-                </TinderCard>
+                </div>
                 <div className="profile-info-icon" onClick={() => {
                   setShowDetail(true);
                   setSelectedUserId(userProfiles[currentIndex]?.Id);
